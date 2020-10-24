@@ -90,9 +90,15 @@ public class BuildingUI : MonoBehaviour
         peopleText.text = "People living here: " + building.peopleCount;
 
         if (building.robotCount == 0)
+        {
             robotText.text = "There are no robots here, this space is reclaimable.";
+            reclaimButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Reclaim";
+        }
         else
+        {
             robotText.text = "Killer robots roaming here: " + building.robotCount;
+            reclaimButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Clear out robots";
+        }
 
         if (city.Reclaimable(building))
             reclaimButton.SetActive(true);
@@ -126,6 +132,11 @@ public class BuildingUI : MonoBehaviour
     //cityBuilder to do the work of reclaiming it.
     public void ReclaimBuilding() 
     {
-        GameEvents.InvokeBuildingReclaimed(building);
+        if (building.robotCount == 0)
+            GameEvents.InvokeBuildingReclaimed(building);
+        else 
+        {
+            GameEvents.InvokeTaskUIStarted(new Task(TaskType.Kill, building));
+        }
     }
 }
