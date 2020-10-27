@@ -18,6 +18,7 @@ public class Building
     public int peopleCount;
     public int robotCount;
     public Boolean reclaimed;
+    public Boolean inTask;
 
     //These function calls create everything about the building. The
     //only thing given to the building on creation is its type, it 
@@ -31,6 +32,7 @@ public class Building
         this.peopleCount = this.GetPeopleAmount();
         this.robotCount = this.GetRobotCount();
         this.reclaimed = false;
+        this.inTask = false;
     }
 
     //This just grabs the enum based on a randomly rolled number this is

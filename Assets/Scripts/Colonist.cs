@@ -48,4 +48,10 @@ public class Colonist
         return output;
     }
 
+    public String GiveInfoString() 
+    {
+        return "Kill: " + fightingSkill + " Lead: " + leadershipSkill + " Scout: " + scoutingSkill + " Build: " + buildingSkill;
+    
+    }
+
 }

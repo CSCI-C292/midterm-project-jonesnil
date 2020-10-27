@@ -22,6 +22,9 @@ public static class GameEvents
     public static event EventHandler<TaskEventArgs> TaskUIStarted;
     public static event EventHandler TaskUIClosing;
     public static event EventHandler DayAdvanced;
+    public static event EventHandler<TaskEventArgs> TaskStarted;
+    public static event EventHandler<TaskEventArgs> TaskCompleted;
+    public static event EventHandler AddColonist;
 
     public static void InvokeBuildingClicked(Building building)
     {
@@ -51,6 +54,21 @@ public static class GameEvents
     public static void InvokeDayAdvanced()
     {
         DayAdvanced(null, EventArgs.Empty);
+    }
+
+    public static void InvokeTaskStarted(Task task)
+    {
+        TaskStarted(null, new TaskEventArgs { taskPayload = task });
+    }
+
+    public static void InvokeTaskCompleted(Task task)
+    {
+        TaskCompleted(null, new TaskEventArgs { taskPayload = task });
+    }
+
+    public static void InvokeAddColonist()
+    {
+        AddColonist(null, EventArgs.Empty);
     }
 
 }

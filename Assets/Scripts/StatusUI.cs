@@ -8,6 +8,7 @@ public class StatusUI : MonoBehaviour
 {
     Button advanceDayButton;
 
+    List<Task> taskHolder;
 
     private void Start()
     {
@@ -15,6 +16,10 @@ public class StatusUI : MonoBehaviour
         GameEvents.BuildingClicked += OnBuildingClicked;
         GameEvents.BuildingUIClosing += OnBuildingUIClosing;
 
+        taskHolder = new List<Task>();
+
+        GameEvents.TaskStarted += OnTaskStarted;
+        GameEvents.TaskCompleted += OnTaskCompleted;
     }
 
 
@@ -31,5 +36,15 @@ public class StatusUI : MonoBehaviour
     public void AdvanceDay() 
     {
         GameEvents.InvokeDayAdvanced();
+    }
+
+    void OnTaskStarted(object sender, TaskEventArgs args) 
+    {
+        taskHolder.Add(args.taskPayload);
+    }
+
+    void OnTaskCompleted(object sender, TaskEventArgs args) 
+    {
+        taskHolder.Remove(args.taskPayload);
     }
 }
