@@ -19,11 +19,12 @@ public class Building
     public int robotCount;
     public Boolean reclaimed;
     public Boolean inTask;
+    public Vector3 worldPosition;
 
     //These function calls create everything about the building. The
     //only thing given to the building on creation is its type, it 
     //does the heavy lifting of making its stats on its own.
-    public Building(int startType)
+    public Building(int startType, Vector3 startWorldPosition)
     {
         this.typeNum = startType;
         this.typeName = this.GetTypeNameByNum(typeNum);
@@ -33,6 +34,7 @@ public class Building
         this.robotCount = this.GetRobotCount();
         this.reclaimed = false;
         this.inTask = false;
+        this.worldPosition = startWorldPosition;
     }
 
     //This just grabs the enum based on a randomly rolled number this is
@@ -129,11 +131,11 @@ public class Building
     //is in the building based on the food variable.
     public string GetFoodAmountString()
     {
-        string output = "placeholder";
-        if(this.food < 3) output = "Scraps";
-        if(this.food >= 3) output = "A few meals";
-        if (this.food >= 7) output = "Stockpile";
-        return output;
+        if (this.food == 0) return "Gone, reduced to atoms";
+        if(this.food < 3 && this.food > 0) return "Scraps";
+        if (this.food >= 3 && this.food < 7) return "A few meals";
+        if (this.food >= 7) return "Stockpile";
+        return "placeholder";
     }
 
     //This takes the randomly determined people number from earlier

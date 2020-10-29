@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class Task
@@ -10,6 +11,7 @@ public class Task
     public TaskType type;
     public Colonist colonist;
     public Building building;
+    public Boolean active;
 
     public Task(TaskType inputType, Building inputBuilding) 
     {
@@ -19,6 +21,8 @@ public class Task
         SetDurationTimer();
 
         GameEvents.DayAdvanced += OnDayAdvanced;
+
+        active = false;
     }
 
     void SetDurationTimer() 
@@ -34,21 +38,30 @@ public class Task
             case TaskType.Recruit:
                 durationTimer = 2;
                 break;
+            case TaskType.Scavenge:
+                durationTimer = 2;
+                break;
+            case TaskType.Farm:
+                durationTimer = 10;
+                break;
         }
     }
 
     void OnDayAdvanced(object sender, EventArgs args) 
     {
-        Debug.Log(durationTimer);
-        durationTimer -= 1;
-        if (durationTimer == 0)
-            ResolveTask();
+        if (this.active)
+        {
+            if(durationTimer != 10)
+                durationTimer -= 1;
+
+            if (durationTimer == 0)
+                ResolveTask();
+        }
     }
 
     void ResolveTask() 
     {
         float roll = UnityEngine.Random.Range(0.0f, 1.0f);
-        Debug.Log("this really it?" + roll);
         int relevantStat;
         float odds;
 
@@ -67,7 +80,7 @@ public class Task
                     GameEvents.InvokeBuildingReclaimed(building);
                 break;
             case TaskType.Recruit:
-                relevantStat = colonist.leadershipSkill;
+                relevantStat = colonist.leadershipSkill - (building.robotCount / 2);
                 odds = GetSuccessOdds(relevantStat);
                 if (odds >= roll)
                 {
@@ -77,11 +90,30 @@ public class Task
                         GameEvents.InvokeAddColonist();
                         peopleIndex += 1;
                     }
+                    building.peopleCount = 0;
+                }
+                break;
+            case TaskType.Scavenge:
+                relevantStat = colonist.scoutingSkill - (building.robotCount / 2);
+                odds = GetSuccessOdds(relevantStat);
+                if (odds >= roll)
+                {
+                    int food = building.food;
+                    int scavenged = 0;
+
+                    if (food < 3) 
+                        scavenged = 1;
+                    if (food >= 3) 
+                        scavenged = 2;
+                    if (food >= 7) 
+                        scavenged = 3;
+                    building.food = 0;
+
+                    GameEvents.InvokeFoodAdded(scavenged);
                 }
                 break;
         }
 
-        building.inTask = false;
         GameEvents.InvokeTaskCompleted(this);
     }
 
@@ -98,8 +130,15 @@ public class Task
                 relevantStat = colonist.buildingSkill;
                 return GetSuccessOdds(relevantStat);
             case TaskType.Recruit:
-                relevantStat = colonist.leadershipSkill;
+                relevantStat = colonist.leadershipSkill - (building.robotCount / 2);
                 return GetSuccessOdds(relevantStat);
+            case TaskType.Scavenge:
+                relevantStat = colonist.scoutingSkill - (building.robotCount / 2);
+                return GetSuccessOdds(relevantStat);
+            case TaskType.Farm:
+                return colonist.scoutingSkill;
+            case TaskType.Protect:
+                return colonist.fightingSkill;
         }
 
         return 0f;

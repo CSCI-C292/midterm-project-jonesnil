@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -22,6 +23,11 @@ public class BuildingUI : MonoBehaviour
     {
 
         GameEvents.BuildingClicked += OnBuildingClicked;
+        GameEvents.TaskUIStarted += OnTaskUIStarted;
+        GameEvents.TaskUIClosing += OnTaskUIClosing;
+        GameEvents.TaskStarted += OnTaskStarted;
+        GameEvents.GameOver += OnGameOver;
+
         uiBox = this.GetComponent<Image>();
         typeText = transform.GetChild(0).GetComponent<Text>();
         foodText = transform.GetChild(1).GetComponent<Text>();
@@ -101,9 +107,11 @@ public class BuildingUI : MonoBehaviour
         foodText.text = "Food available: " + building.GetFoodAmountString();
         peopleText.text = "People living here: " + building.peopleCount;
 
+        scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Scavenge";
+
         if (building.robotCount == 0)
         {
-            robotText.text = "There are no robots here, this space is reclaimable.";
+            robotText.text = "No more robots. Wall it off?";
             reclaimButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Reclaim";
         }
         else
@@ -114,9 +122,11 @@ public class BuildingUI : MonoBehaviour
 
         if (city.Reclaimable(building))
         {
+            if(building.peopleCount > 0 && StatusUI.canAddColonist)
+                recruitButton.SetActive(true);
+            if(building.food > 0)
+                scavengeButton.SetActive(true);
             reclaimButton.SetActive(true);
-            recruitButton.SetActive(true);
-            scavengeButton.SetActive(true);
         }
     }
 
@@ -124,6 +134,7 @@ public class BuildingUI : MonoBehaviour
     //base already.
     public void SetUpReclaimedUI()
     {
+
         switch (building.typeName)
         {
             case BuildingType.Hospital:
@@ -137,9 +148,13 @@ public class BuildingUI : MonoBehaviour
                 break;
             case BuildingType.Farm:
                 foodText.text = "Station colonists here to make food.";
+                scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Farm";
+                scavengeButton.SetActive(true);
                 break;
             case BuildingType.PD:
                 foodText.text = "Station colonists here to raise your defense.";
+                scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Defend";
+                scavengeButton.SetActive(true);
                 break;
         }
     }
@@ -147,6 +162,8 @@ public class BuildingUI : MonoBehaviour
     public void SetUpAlreadyTaskedUI()
     {
         foodText.text = "You already have a mission going here.";
+        scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Cancel Task?";
+        scavengeButton.SetActive(true);
     }
 
     //This is just a function to be called by the reclaim button, and it uses an Event to tell
@@ -162,5 +179,57 @@ public class BuildingUI : MonoBehaviour
     public void Recruit() 
     {
         GameEvents.InvokeTaskUIStarted(new Task(TaskType.Recruit, building));
+    }
+
+    public void Scavenge() 
+    {
+        if (building.inTask)
+        {
+            GameEvents.InvokeTaskCancelled(building);
+            CloseBuildingUI();
+        }
+
+        else
+        {
+            if (building.reclaimed)
+            {
+                if(building.typeName == BuildingType.Farm)
+                    GameEvents.InvokeTaskUIStarted(new Task(TaskType.Farm, building));
+                if (building.typeName == BuildingType.PD)
+                    GameEvents.InvokeTaskUIStarted(new Task(TaskType.Protect, building));
+            }
+            else
+                GameEvents.InvokeTaskUIStarted(new Task(TaskType.Scavenge, building));
+        }
+    }
+
+    void OnTaskUIStarted(object sender, TaskEventArgs args) 
+    {
+        exitButton.GetComponent<Button>().interactable = false;
+        recruitButton.GetComponent<Button>().interactable = false;
+        reclaimButton.GetComponent<Button>().interactable = false;
+        scavengeButton.GetComponent<Button>().interactable = false;
+    }
+
+    void OnTaskUIClosing(object sender, EventArgs args)
+    {
+        exitButton.GetComponent<Button>().interactable = true;
+        recruitButton.GetComponent<Button>().interactable = true;
+        reclaimButton.GetComponent<Button>().interactable = true;
+        scavengeButton.GetComponent<Button>().interactable = true;
+    }
+
+    void OnTaskStarted(object sender, TaskEventArgs args) 
+    {
+        CloseBuildingUI();
+    }
+
+    void OnGameOver(object sender, EventArgs args) 
+    {
+        GameEvents.BuildingClicked -= OnBuildingClicked;
+        GameEvents.TaskUIStarted -= OnTaskUIStarted;
+        GameEvents.TaskUIClosing -= OnTaskUIClosing;
+        GameEvents.TaskStarted -= OnTaskStarted;
+        GameEvents.GameOver -= OnGameOver;
     }
 }

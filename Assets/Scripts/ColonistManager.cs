@@ -64,6 +64,11 @@ public class ColonistManager : MonoBehaviour
         GameEvents.TaskCompleted += OnTaskCompleted;
         GameEvents.AddColonist += OnAddColonist;
 
+        GameEvents.RemoveRandomColonist += OnRemoveRandomColonist;
+        GameEvents.RemoveColonist += OnRemoveColonist;
+        GameEvents.RoboAttack += OnRoboAttack;
+        GameEvents.GameOver += OnGameOver;
+
         assignableColonists = new List<Colonist>();
         allColonists = new List<Colonist>();
         CreateStartingColonists();
@@ -89,7 +94,11 @@ public class ColonistManager : MonoBehaviour
         cancelTaskSelectionButton.SetActive(false);
         taskOdds.enabled = false;
         UISlideNumber = 1;
-        GameEvents.InvokeTaskUIClosing();
+        try
+        {
+            GameEvents.InvokeTaskUIClosing();
+        }
+        catch { }
     }
 
     void OpenUI(object sender, TaskEventArgs args) 
@@ -179,9 +188,7 @@ public class ColonistManager : MonoBehaviour
 
         while (colonistIndex < startingColonistAmount) 
         {
-            Colonist newColonist = new Colonist();
-            assignableColonists.Add(newColonist);
-            allColonists.Add(newColonist);
+            GameEvents.InvokeAddColonist();
             colonistIndex += 1;
         }
     }
@@ -228,7 +235,10 @@ public class ColonistManager : MonoBehaviour
         confirmTaskSelectionButton.SetActive(true);
         cancelTaskSelectionButton.SetActive(true);
         taskOdds.enabled = true;
-        taskOdds.text = currentTask.GetTaskOdds().ToString();
+        if(currentTask.GetTaskOdds() < 1)
+            taskOdds.text = (currentTask.GetTaskOdds()*100).ToString() + "%";
+        else
+            taskOdds.text = "+" + currentTask.GetTaskOdds().ToString();
         colonistChoiceOneButton.GetComponent<Button>().interactable = false;
         colonistChoiceTwoButton.GetComponent<Button>().interactable = false;
         colonistChoiceThreeButton.GetComponent<Button>().interactable = false;
@@ -256,6 +266,7 @@ public class ColonistManager : MonoBehaviour
         assignableColonists.Remove(currentTask.colonist);
         GameEvents.InvokeTaskStarted(currentTask);
         currentTask.building.inTask = true;
+        currentTask.active = true;
         CloseUI();
     }
 
@@ -266,6 +277,7 @@ public class ColonistManager : MonoBehaviour
 
     public void OnExitPressed() 
     {
+        currentTask.active = false;
         currentTask = null;
         CloseUI();
     }
@@ -274,6 +286,47 @@ public class ColonistManager : MonoBehaviour
     {
         Task task = args.taskPayload;
         assignableColonists.Add(task.colonist);
+    }
+
+    void OnRemoveRandomColonist(object sender, EventArgs args) 
+    {
+        GameEvents.InvokeRemoveColonist(allColonists[UnityEngine.Random.Range(0, allColonists.Count - 1)]);
+    }
+
+    void OnRemoveColonist(object sender, ColonistEventArgs args) 
+    {
+        Colonist colonistToRemove = args.colonistPayload;
+        if (assignableColonists.Contains(colonistToRemove))
+            allColonists.Remove(colonistToRemove);
+        
+        if(assignableColonists.Contains(colonistToRemove))
+            assignableColonists.Remove(colonistToRemove);
+    }
+
+    void OnRoboAttack(object sender, BooleanEventArgs args) 
+    {
+        Boolean casualty = args.booleanPayload;
+
+        if (casualty)
+        {
+            Colonist dead = allColonists[UnityEngine.Random.Range(0, allColonists.Count - 1)];
+            GameEvents.InvokeRoboAttackUIStarted(dead);
+        }
+        else
+        {
+            GameEvents.InvokeRoboAttackUIStarted(null);
+        }
+    }
+
+    void OnGameOver(object sender, EventArgs args) 
+    {
+        GameEvents.TaskUIStarted -= OpenUI;
+        GameEvents.TaskCompleted -= OnTaskCompleted;
+        GameEvents.AddColonist -= OnAddColonist;
+        GameEvents.RemoveRandomColonist -= OnRemoveRandomColonist;
+        GameEvents.RemoveColonist -= OnRemoveColonist;
+        GameEvents.RoboAttack -= OnRoboAttack;
+        GameEvents.GameOver -= OnGameOver;
     }
 
 

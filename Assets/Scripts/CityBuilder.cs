@@ -15,11 +15,15 @@ public class CityBuilder : MonoBehaviour
     Boolean inMenu;
 
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
         GameEvents.BuildingClicked += OnBuildingClicked;
         GameEvents.BuildingReclaimed += OnBuildingReclaimed;
         GameEvents.BuildingUIClosing += OnBuildingUIClosing;
+        GameEvents.RoboAttackUIStarted += OnRoboAttackUIStarted;
+        GameEvents.AlertConcluded += OnAlertConcluded;
+        GameEvents.AlertStarted += OnAlertStarted;
+        GameEvents.GameOver += OnGameOver;
 
         cityTiles = this.GetComponent<Tilemap>();
         cityTiles.SetTile(new Vector3Int(-2, 8, 0), buildings[0]);
@@ -78,7 +82,7 @@ public class CityBuilder : MonoBehaviour
                 //adjacent locations because I want the precise location.
                 int type = GetRandomBuilding();
                 cityTiles.SetTile(tilePos, buildings[type]);
-                Building currentBuilding = new Building(type);
+                Building currentBuilding = new Building(type, cityTiles.CellToWorld(tilePos));
                 buildingCatalog.Add(tilePos, currentBuilding);
                 buildingCatalog.Add(tilePosUpLeft, currentBuilding);
                 buildingCatalog.Add(tilePosUpRight, currentBuilding);
@@ -170,9 +174,6 @@ public class CityBuilder : MonoBehaviour
 
             if (buildingCatalog.ContainsKey(clickedTilePos))
                 GameEvents.InvokeBuildingClicked(buildingCatalog[clickedTilePos]);
-
-            else
-                Debug.Log("not a building. Misclick?");
         }
     }
 
@@ -196,6 +197,34 @@ public class CityBuilder : MonoBehaviour
     private void OnBuildingClicked(object sender, BuildingEventArgs args)
     {
         inMenu = true;
+    }
+
+    void OnAlertStarted(object sender, AlertEventArgs args)
+    {
+        inMenu = true;
+    }
+
+    //This function is called when the game ends to stop you from clicking stuff.
+    private void OnGameOver(object sender, EventArgs args) 
+    {
+        GameEvents.BuildingClicked -= OnBuildingClicked;
+        GameEvents.BuildingReclaimed -= OnBuildingReclaimed;
+        GameEvents.BuildingUIClosing -= OnBuildingUIClosing;
+        GameEvents.RoboAttackUIStarted -= OnRoboAttackUIStarted;
+        GameEvents.AlertConcluded -= OnAlertConcluded;
+        GameEvents.AlertStarted -= OnAlertStarted;
+        GameEvents.GameOver -= OnGameOver;
+        inMenu = true;
+    }
+
+    void OnRoboAttackUIStarted(object sender, ColonistEventArgs args)
+    {
+        inMenu = true;
+    }
+
+    private void OnAlertConcluded(object sender, EventArgs args)
+    {
+        inMenu = false;
     }
 
     //This is called when the buildingUI closes and it lets the mouse click on
@@ -248,11 +277,11 @@ public class CityBuilder : MonoBehaviour
     public void ReclaimStarterBuildings() 
     {
         Vector3Int hubBuildingPos = new Vector3Int(0, 0, 0);
-        setBuildingReclaimed(buildingCatalog[hubBuildingPos]);
+        GameEvents.InvokeBuildingReclaimed(buildingCatalog[hubBuildingPos]);
 
         foreach (Vector3Int adjacentBuilding in GetAdjacentBuildingPositions(hubBuildingPos)) 
         {
-            setBuildingReclaimed(buildingCatalog[adjacentBuilding]);
+            GameEvents.InvokeBuildingReclaimed(buildingCatalog[adjacentBuilding]);
         }
 
     }
@@ -276,5 +305,6 @@ public class CityBuilder : MonoBehaviour
         }
         return output;
     }
+
 
 }
