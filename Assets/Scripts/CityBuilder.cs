@@ -199,6 +199,7 @@ public class CityBuilder : MonoBehaviour
         inMenu = true;
     }
 
+    //If an alert is given I don't want you to click stuff, that would be weird.
     void OnAlertStarted(object sender, AlertEventArgs args)
     {
         inMenu = true;
@@ -217,11 +218,14 @@ public class CityBuilder : MonoBehaviour
         inMenu = true;
     }
 
+    // No clicking stuff during a robot attack.
     void OnRoboAttackUIStarted(object sender, ColonistEventArgs args)
     {
         inMenu = true;
     }
 
+    // Alright, if the alert is over you can click stuff. If you were curious, this is
+    // also called when robot attacks end.
     private void OnAlertConcluded(object sender, EventArgs args)
     {
         inMenu = false;

@@ -159,6 +159,8 @@ public class BuildingUI : MonoBehaviour
         }
     }
 
+    // This is called if the building you clicked has a task assigned to it. It allows you to cancel
+    // the task if you want, and labels the UI as such.
     public void SetUpAlreadyTaskedUI()
     {
         foodText.text = "You already have a mission going here.";
@@ -176,11 +178,17 @@ public class BuildingUI : MonoBehaviour
             GameEvents.InvokeTaskUIStarted(new Task(TaskType.Kill, building));
     }
 
+    // This button only shows up if you can recruit someone from an unclaimed spot.
+    // On clicking it , it constructs a recruit task and starts up TaskUI to finish it up.
     public void Recruit() 
     {
         GameEvents.InvokeTaskUIStarted(new Task(TaskType.Recruit, building));
     }
 
+    // Similar to the recruit button, but it does different stuff based on the situation because
+    // this button is used for all kinds of stuff. It can start farming, protecting, scavenging, 
+    // or cancelling the current task depending on what the building is up to (reclaimed or not,
+    // tasked or not, its type.) It's tied to a button in the Unity editor.
     public void Scavenge() 
     {
         if (building.inTask)
@@ -203,6 +211,8 @@ public class BuildingUI : MonoBehaviour
         }
     }
 
+    // So if colonistManagers taskUI is started we don't want to steal its thunder. This shuts down all
+    // the buildingUI buttons so the player doesn't click them and make weird stuff happen.
     void OnTaskUIStarted(object sender, TaskEventArgs args) 
     {
         exitButton.GetComponent<Button>().interactable = false;
@@ -211,6 +221,9 @@ public class BuildingUI : MonoBehaviour
         scavengeButton.GetComponent<Button>().interactable = false;
     }
 
+    // For you indecisive beepboopers, if you cancel the colonist/task menu
+    // using the X button on it this will let you do something else on the 
+    // selected building.
     void OnTaskUIClosing(object sender, EventArgs args)
     {
         exitButton.GetComponent<Button>().interactable = true;
@@ -218,12 +231,20 @@ public class BuildingUI : MonoBehaviour
         reclaimButton.GetComponent<Button>().interactable = true;
         scavengeButton.GetComponent<Button>().interactable = true;
     }
-
+    // However, if you pick a task in the colonist manager screen, this
+    // shuts down the whole building UI. You can't place two tasks in a building
+    // anyway so this is probably what the player would want.
     void OnTaskStarted(object sender, TaskEventArgs args) 
     {
         CloseBuildingUI();
     }
 
+    // When the game ends I want to be able to reload the active scene to restart. However, you might 
+    // notice that the GameEvents I make are static. Static things don't get destroyed on reload, and 
+    // Unity seems to throw a huge fit when an event tries to call a function that doesn't exist (because
+    // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
+    // connection severed before the game is reloaded. The connections will be remade by the new versions
+    // of these classes on boot.
     void OnGameOver(object sender, EventArgs args) 
     {
         GameEvents.BuildingClicked -= OnBuildingClicked;

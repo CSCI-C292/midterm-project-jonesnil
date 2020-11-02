@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+// Might have gone a bit overboard with events in this game but believe it or not I actually found them really
+// convenient. I had used them before but didn't really understand them until this class and used this project to 
+// explore using them. I'd rather not catalogue each event and what it does here but I tried to name them intuitively
+// and I do describe what they effect in the code when they're called in the comments on other classes
+
 public class BuildingEventArgs : EventArgs
 {
     public Building buildingPayload;

@@ -5,6 +5,10 @@ using System.Diagnostics.Tracing;
 using UnityEngine;
 using UnityEngine.UI;
 
+// This class also has a few hats. It basically keeps track of the overall state of the game (food, colonist
+// capacity, defense, tasks) and it displays that at the top of the screen. It also places little markers when you
+// give a task to make things clear to the player, and it gets rid of them when a task is over.
+
 public class StatusUI : MonoBehaviour
 {
     Button advanceDayButton;
@@ -19,6 +23,11 @@ public class StatusUI : MonoBehaviour
     int defense;
     int buildingsReclaimed;
 
+    // I admit this is bad game programming practice but I was having some trouble avoiding it. This static
+    // variable lets the task class know if a colonist can be added based on the colonists present and the 
+    // apartments in the base. This info needs to flow between this class, the tasks, and the colonist manager.
+    // Admittedly I could've used scriptable objects to keep a state and do it that way but it just seemed like
+    // a weird thing to make so close to finishing the game.
     public static Boolean canAddColonist;
 
     [SerializeField] GameObject iconPrefab;
@@ -40,6 +49,11 @@ public class StatusUI : MonoBehaviour
         this.iconFinder = new Dictionary<Vector3, GameObject>();
 
         this.taskHolder = new List<Task>();
+
+
+        // Yeah if there's an event this thing pretty well listens to it. Instead of touching
+        // everything else in the game to get info it just pays close attention to what they do 
+        // and stores the information.
 
         GameEvents.TaskStarted += OnTaskStarted;
         GameEvents.TaskCompleted += OnTaskCompleted;
@@ -76,6 +90,8 @@ public class StatusUI : MonoBehaviour
         this.UpdateDisplay();
     }
 
+    // Keeps track of buildings reclaimed, both to note how many apartments and to decide
+    // the game difficulty (game gets harder the more buildings you have.)
     void OnBuildingReclaimed(object sender, BuildingEventArgs args) 
     {
         buildingsReclaimed += 1;
@@ -93,6 +109,7 @@ public class StatusUI : MonoBehaviour
         this.UpdateDisplay();
     }
 
+    // Listens to FoodAdded(which is called by tasks) and does the work of adding the food to the state.
     void OnFoodAdded(object sender, IntEventArgs args) 
     {
         int foodAdded = args.intPayload;
@@ -101,6 +118,8 @@ public class StatusUI : MonoBehaviour
         this.UpdateDisplay();
     }
 
+    // This function is called a ton in this class. It just updates the UI to match whatever changes may have happened
+    // state-wise.
     void UpdateDisplay() 
     {
         this.foodDisplay.text = "Food: " + this.currentFood.ToString() + "/" + (this.farming - this.currentColonists).ToString();
@@ -108,38 +127,58 @@ public class StatusUI : MonoBehaviour
         this.defenseDisplay.text = "Defense: " + this.defense.ToString();
     }
 
-
+    // Don't click a building and then advance the day, that's weird.
     void OnBuildingClicked(object sender, BuildingEventArgs args) 
     {
         advanceDayButton.interactable = false;
     }
 
+
+    // Alright yeah you unclicked the building, go ahead and advance the day. You might notice that
+    // it doesn't need to check if the taskUI opens and make things uninteractable, by the way. That's 
+    // because TaskUI is only open while buildingUI is open. That logic is used by a few other classes for
+    // convenience too, so they don't close down their UI twice for no reason.
     void OnBuildingUIClosing(object sender, EventArgs args) 
     {
         advanceDayButton.interactable = true;
     }
 
+    // If the big alert box is on the screen don't click the day.
     void OnAlertStarted(object sender, AlertEventArgs args)
     {
         advanceDayButton.interactable = false;
     }
 
+    // This is called when the advance day button is clicked. It does a lot so I'll go over
+    // the inside piece by piece, but if you don't feel like reading it lowers the food by your 
+    // colonist count and then kills a colonist randomly (by calling a UI event) if you have negative
+    // food. It also calls a robot attack randomly (10% of the time) with or without a death depending 
+    // on some variables.
     public void AdvanceDay() 
     {
+        // It does try to avoid irritating null reference exceptions if the event isn't assigned.
         try
         {
             GameEvents.InvokeDayAdvanced();
         }
         catch { }
 
-
+        // Remove food based on colonists
         currentFood += (this.farming - this.currentColonists);
+
+        // You can start an alert that kills a random colonist in a generic way using this event. 
+        // It just takes a string to put on the alert itself and one to put on the button to close it.
+        // This calls an alert to kill a colonist if they're starving, and give text that matches it to
+        // warn them.
         if (currentFood < 0)
         {
             GameEvents.InvokeAlertStarted("One of your colonists died of hunger! Set someone to farm or scavenge to make food.","Noted.");
         }
 
-        
+        // This rolls for a robot attack (10% odds) and then if the defense (set by assigning colonists to protect)
+        // is lower than the rolled attack number (1 - the amount of reclaimed buildings) it kills a colonist using
+        // the robot attack event. Otherwise it sends a robot attack event that doesn't kill to let the player know
+        // they fought them off well.
         float robotAttackRoll = UnityEngine.Random.Range(0.0f, 1.0f);
         if (robotAttackRoll <= .1f)
         {
@@ -154,10 +193,15 @@ public class StatusUI : MonoBehaviour
             }
         }
         
-
+        // As always, if you change the state update the state display.
         UpdateDisplay();
     }
 
+    // This is probably an irritating function to read but it listens to the taskStarted event
+    // and notes any farmers/defenders added for its state-keeping (and their relevant skills). 
+    // It also places a little icon on the map where you started a task so you don't forget where 
+    // your people are (and writes the icon into a dictionary with a task so it can find it later
+    // to discard it).
     void OnTaskStarted(object sender, TaskEventArgs args) 
     {
         Task startedTask = args.taskPayload;
@@ -180,6 +224,9 @@ public class StatusUI : MonoBehaviour
         UpdateDisplay();
     }
 
+    // When the taskCompleted event is called this function gets rid of the icon it placed after finding
+    // the task in its Icon-task dictionary. It also takes from your farming/defense task based on the skill
+    // of the person you removed.
     void OnTaskCompleted(object sender, TaskEventArgs args) 
     {
         Task finishedTask = args.taskPayload;
@@ -200,6 +247,14 @@ public class StatusUI : MonoBehaviour
         UpdateDisplay();
     }
 
+    // This bit is kind of important. When the RemoveColonist event is called, that colonist
+    // obviously should not be able to resolve any tasks assigned to them. This function grabs
+    // the dead colonist and searches all the tasks it has for them, and if they have a task it
+    // deletes it. 
+    //
+    // Ideally one colonist should have only one job, and I've never seen that not be
+    // the case, but just in case this function checks all tasks for that colonist and can potentially
+    // remove multiple..
     void OnRemoveColonist(object sender, ColonistEventArgs args) 
     {
         this.currentColonists -= 1;
@@ -232,10 +287,16 @@ public class StatusUI : MonoBehaviour
             GameEvents.InvokeTaskCompleted(badTask);
         }
 
+        dummyTaskHolder = new List<Task>();
+
         UpdateDisplay();
     
     }
 
+    // If a task is cancelled on a building, this function finds any tasks it might
+    // have associated with that building and deletes them so they shouldn't resolve.
+    // Again, there shouldn't be two tasks on a building, but for giggles this could
+    // potentially remove multiple tasks for a building if they exist.
     void OnTaskCancelled(object sender, BuildingEventArgs args) 
     {
         Building buildingToRemoveTaskFrom = args.buildingPayload;
@@ -261,16 +322,24 @@ public class StatusUI : MonoBehaviour
         }
     }
 
+    // Don't try to advance the day on your robot attack alert.
     void OnRoboAttackUIStarted(object sender, ColonistEventArgs args)
     {
         advanceDayButton.interactable = false;
     }
 
+    // Alright alerts over advance the day all you want.
     private void OnAlertConcluded(object sender, EventArgs args)
     {
         advanceDayButton.interactable = true;
     }
 
+    // When the game ends I want to be able to reload the active scene to restart. However, you might 
+    // notice that the GameEvents I make are static. Static things don't get destroyed on reload, and 
+    // Unity seems to throw a huge fit when an event tries to call a function that doesn't exist (because
+    // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
+    // connection severed before the game is reloaded. The connections will be remade by the new versions
+    // of these classes on boot.
     void OnGameOver(object sender, EventArgs args) 
     {
         advanceDayButton.interactable = false;

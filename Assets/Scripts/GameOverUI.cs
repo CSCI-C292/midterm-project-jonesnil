@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+// This class can restart the game when it's over and do that UI stuff, but it also handles general alerts.
+// They are all bad at least as of now, so it gives you spooky robot font text and a gray box.
+
 public class GameOverUI : MonoBehaviour
 {
     Image backgroundPanel;
@@ -12,6 +15,9 @@ public class GameOverUI : MonoBehaviour
     Text gameOverText;
     Colonist dead;
     GameObject restartButton;
+
+    // This is just a variable GameOverUI keeps track of itself, and changes everytime an alert is called.
+    // It tells the class what to do when the button attached to it is clicked.
     AlertType alertType;
 
     void Start()
@@ -29,6 +35,7 @@ public class GameOverUI : MonoBehaviour
         CloseGameOverUI();
     }
 
+    // Does the tedious work of closing the UI box.
     void CloseGameOverUI() 
     {
         backgroundPanel.enabled = false;
@@ -37,6 +44,7 @@ public class GameOverUI : MonoBehaviour
         restartButton.SetActive(false);
     }
 
+    // Oh boy, this one opens the UI box.
     void OpenGameOverUI()
     {
         backgroundPanel.enabled = true;
@@ -45,6 +53,9 @@ public class GameOverUI : MonoBehaviour
         restartButton.SetActive(true);
     }
 
+    // When you reach game over, this gives the relevant alert text/button text and situates itself to restart
+    // the game when you click its button. It also severs the connection between the events and its methods so
+    // when you hit restart they won't break the game on reloading the scene.
     void OnGameOver(object sender, EventArgs args) 
     {
         alertType = AlertType.GameOver;
@@ -59,6 +70,8 @@ public class GameOverUI : MonoBehaviour
         OpenGameOverUI();
     }
 
+    // When a robot attack happens this sets the text depending on if anyone died, and changes the alert type
+    // to the right one.
     void OnRoboAttackUIStarted(object sender, ColonistEventArgs args) 
     {
         alertType = AlertType.RobotAttack;
@@ -80,6 +93,8 @@ public class GameOverUI : MonoBehaviour
         
     }
 
+    // This is like the last two but for miscellaneous generic alerts that kill a colonist. It just displays
+    // the strings that come in for the button and alert text.
     void OnAlertStarted(object sender, AlertEventArgs args)
     {
         alertType = AlertType.Misc;
@@ -90,13 +105,20 @@ public class GameOverUI : MonoBehaviour
         restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = args.buttonString;
     }
 
+    // This is linked to what's called the Restart button. To be honest at this point it's really just the
+    // close alert button though, with how much I reused this UI. It checks what alertType it has when you click 
+    // it, and closes the alert in a way that makes sense depending on the type.
     public void RestartGame() 
     {
         switch (alertType) 
         {
+            //If the alert is gameover, just restart the game.
             case AlertType.GameOver:
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 break;
+
+            // If the alert is robot attack, check if anyone died, and if so remove the colonist
+            // and reset the dead variable. Otherwise just end the alert and dip. 
             case AlertType.RobotAttack:
                 CloseGameOverUI();
                 GameEvents.InvokeAlertConcluded();
@@ -106,6 +128,9 @@ public class GameOverUI : MonoBehaviour
                     dead = null;
                 }
                 break;
+
+            // If this is a miscellaneous colonist killing alert just kill the colonist at random,
+            // end the event and dip.
             case AlertType.Misc:
                 CloseGameOverUI();
                 GameEvents.InvokeAlertConcluded();
