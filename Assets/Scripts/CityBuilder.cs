@@ -242,7 +242,7 @@ public class CityBuilder : MonoBehaviour
     }
 
     //This function is called when the game ends to stop you from clicking stuff.
-    private void OnGameOver(object sender, IntEventArgs args) 
+    private void OnGameOver(object sender, GameOverEventArgs args) 
     {
         GameEvents.BuildingClicked -= OnBuildingClicked;
         GameEvents.BuildingReclaimed -= OnBuildingReclaimed;

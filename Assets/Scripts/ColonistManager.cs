@@ -34,6 +34,10 @@ public class ColonistManager : MonoBehaviour
     List<Colonist> assignableColonists;
     List<Colonist> allColonists;
 
+    // Set this in the editor, I don't initialize it here. It's just
+    // the number of colonists the player starts with.
+    [SerializeField] int startingColonists;
+
     int UISlideNumber;
 
 
@@ -234,10 +238,9 @@ public class ColonistManager : MonoBehaviour
     // itself to work with its own event call. 
     void CreateStartingColonists() 
     {
-        int startingColonistAmount = 3;
         int colonistIndex = 0;
 
-        while (colonistIndex < startingColonistAmount) 
+        while (colonistIndex < startingColonists) 
         {
             GameEvents.InvokeAddColonist();
             colonistIndex += 1;
@@ -434,7 +437,7 @@ public class ColonistManager : MonoBehaviour
     // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
     // connection severed before the game is reloaded. The connections will be remade by the new versions
     // of these classes on boot.
-    void OnGameOver(object sender, IntEventArgs args) 
+    void OnGameOver(object sender, GameOverEventArgs args) 
     {
         GameEvents.TaskUIStarted -= OpenUI;
         GameEvents.TaskCompleted -= OnTaskCompleted;

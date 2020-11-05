@@ -41,6 +41,12 @@ public class AlertEventArgs : EventArgs
     public int happinessDiff;
 }
 
+public class GameOverEventArgs : EventArgs
+{
+    public int daysPassed;
+    public Boolean gameWon;
+}
+
 public static class GameEvents
 {
 
@@ -56,7 +62,7 @@ public static class GameEvents
     public static event EventHandler<IntEventArgs> FoodAdded;
     public static event EventHandler RemoveRandomColonist;
     public static event EventHandler<ColonistEventArgs> RemoveColonist;
-    public static event EventHandler<IntEventArgs> GameOver;
+    public static event EventHandler<GameOverEventArgs> GameOver;
     public static event EventHandler<BuildingEventArgs> TaskCancelled;
     public static event EventHandler<BooleanEventArgs> RoboAttack;
     public static event EventHandler<ColonistEventArgs> RoboAttackUIStarted;
@@ -124,9 +130,9 @@ public static class GameEvents
         RemoveColonist(null, new ColonistEventArgs { colonistPayload = colonist });
     }
 
-    public static void InvokeGameOver(int daysGone)
+    public static void InvokeGameOver(int daysGone, bool win)
     {
-        GameOver(null, new IntEventArgs { intPayload = daysGone});
+        GameOver(null, new GameOverEventArgs { daysPassed = daysGone, gameWon = win});
     }
 
     public static void InvokeTaskCancelled(Building building) 

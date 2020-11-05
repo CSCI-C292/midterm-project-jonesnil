@@ -62,14 +62,25 @@ public class GameOverUI : MonoBehaviour
     // When you reach game over, this gives the relevant alert text/button text and situates itself to restart
     // the game when you click its button. It also severs the connection between the events and its methods so
     // when you hit restart they won't break the game on reloading the scene.
-    void OnGameOver(object sender, IntEventArgs args) 
+    void OnGameOver(object sender, GameOverEventArgs args) 
     {
-        int daysGone = args.intPayload;
+        int daysGone = args.daysPassed;
+        bool victory = args.gameWon;
         alertType = AlertType.GameOver;
 
-        gameOverText.text = "All of your colonists have died, whether by starvation or the robot menace. May the human legacy live on in their beeps.";
-        dayDisplay.text = "You survived: " + daysGone + " days.";
-        restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Restart?";
+        if (victory)
+        {
+            gameOverText.text = "You have vanquished all robots in the city and reclaimed your independence. You've done well for your people, but what of the others?";
+            dayDisplay.text = "You reigned: " + daysGone + " days.";
+            restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Relocate?";
+        }
+
+        else
+        {
+            gameOverText.text = "All of your colonists have died, whether by starvation or the robot menace. May the human legacy live on in their beeps.";
+            dayDisplay.text = "You survived: " + daysGone + " days.";
+            restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Restart?";
+        }
 
         GameEvents.RoboAttackUIStarted -= OnRoboAttackUIStarted;
         GameEvents.AlertStarted -= OnAlertStarted;

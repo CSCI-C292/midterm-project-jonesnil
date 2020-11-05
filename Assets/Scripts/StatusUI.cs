@@ -23,6 +23,7 @@ public class StatusUI : MonoBehaviour
     int farming;
     int defense;
     int buildingsReclaimed;
+    int totalBuildings;
     int daysPassed;
     int currentHappiness;
     int bartending;
@@ -86,6 +87,8 @@ public class StatusUI : MonoBehaviour
 
         this.buildingsReclaimed = 0;
         this.daysPassed = 0;
+
+        this.totalBuildings = 55;
 
         this.UpdateDisplay();
     }
@@ -216,7 +219,12 @@ public class StatusUI : MonoBehaviour
                 GameEvents.InvokeRoboAttack(false);
             }
         }
-        
+
+        if (this.buildingsReclaimed >= totalBuildings) 
+        {
+            GameEvents.InvokeGameOver(daysPassed, true);
+        }
+
         // As always, if you change the state update the state display.
         UpdateDisplay();
     }
@@ -245,7 +253,7 @@ public class StatusUI : MonoBehaviour
             defense += startedTask.colonist.fightingSkill;
 
         if (startedTask.type == TaskType.Bartend)
-            defense += startedTask.colonist.leadershipSkill;
+            bartending += startedTask.colonist.leadershipSkill;
 
         taskHolder.Add(startedTask);
         UpdateDisplay();
@@ -271,7 +279,7 @@ public class StatusUI : MonoBehaviour
             defense -= finishedTask.colonist.fightingSkill;
 
         if (finishedTask.type == TaskType.Bartend)
-            defense -= finishedTask.colonist.leadershipSkill;
+            bartending -= finishedTask.colonist.leadershipSkill;
 
         taskHolder.Remove(finishedTask);
         UpdateDisplay();
@@ -293,7 +301,7 @@ public class StatusUI : MonoBehaviour
             canAddColonist = true;
 
         if (this.currentColonists <= 0)
-            GameEvents.InvokeGameOver(this.daysPassed);
+            GameEvents.InvokeGameOver(this.daysPassed, false);
 
         Colonist colonistToRemove = args.colonistPayload;
         int counter = 0;
@@ -379,7 +387,7 @@ public class StatusUI : MonoBehaviour
     // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
     // connection severed before the game is reloaded. The connections will be remade by the new versions
     // of these classes on boot.
-    void OnGameOver(object sender, IntEventArgs args) 
+    void OnGameOver(object sender, GameOverEventArgs args) 
     {
         advanceDayButton.interactable = false;
 
