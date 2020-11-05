@@ -80,8 +80,8 @@ public class CityBuilder : MonoBehaviour
                 //It also makes an inverse dictionary, because sometimes I want to take a
                 //building and get its location instead. In that case I don't include the 
                 //adjacent locations because I want the precise location.
-                int type = GetRandomBuilding();
-                cityTiles.SetTile(tilePos, buildings[type]);
+                BuildingType type = GetRandomBuilding();
+                cityTiles.SetTile(tilePos, buildings[GetBuildingIndex(type)]);
                 Building currentBuilding = new Building(type, cityTiles.CellToWorld(tilePos));
                 buildingCatalog.Add(tilePos, currentBuilding);
                 buildingCatalog.Add(tilePosUpLeft, currentBuilding);
@@ -153,9 +153,45 @@ public class CityBuilder : MonoBehaviour
     }
 
     //This just gets a random number to represent a building type.
-    int GetRandomBuilding()
+    BuildingType GetRandomBuilding()
     {
-        return UnityEngine.Random.Range(0, buildings.Length);
+        float buildingRoll = UnityEngine.Random.Range(0.0f, 1.0f);
+
+        if(buildingRoll <= .25)
+            return BuildingType.Farm;
+        if(buildingRoll <= .5)
+            return BuildingType.PD;
+        if(buildingRoll <= .75)
+            return BuildingType.Apartment;
+        if(buildingRoll <= .85)
+            return BuildingType.Bar;
+        if (buildingRoll <= .95)
+            return BuildingType.Grocery;
+        return BuildingType.Hospital;
+
+    }
+
+    // Returns the index in the array of tiles for the building type.
+    int GetBuildingIndex(BuildingType type) 
+    {
+        switch (type) 
+        {
+            case BuildingType.Hospital:
+                return 0;
+            case BuildingType.Apartment:
+                return 1;
+            case BuildingType.Grocery:
+                return 2;
+            case BuildingType.Farm:
+                return 4;
+            case BuildingType.PD:
+                return 3;
+            case BuildingType.Bar:
+                return 5;
+        }
+
+        // This should never happen it just shuts up visual studio by returning something.
+        return 0;
     }
 
     private void OnMouseDown()
@@ -206,7 +242,7 @@ public class CityBuilder : MonoBehaviour
     }
 
     //This function is called when the game ends to stop you from clicking stuff.
-    private void OnGameOver(object sender, EventArgs args) 
+    private void OnGameOver(object sender, IntEventArgs args) 
     {
         GameEvents.BuildingClicked -= OnBuildingClicked;
         GameEvents.BuildingReclaimed -= OnBuildingReclaimed;

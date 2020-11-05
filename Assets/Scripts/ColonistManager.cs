@@ -434,7 +434,7 @@ public class ColonistManager : MonoBehaviour
     // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
     // connection severed before the game is reloaded. The connections will be remade by the new versions
     // of these classes on boot.
-    void OnGameOver(object sender, EventArgs args) 
+    void OnGameOver(object sender, IntEventArgs args) 
     {
         GameEvents.TaskUIStarted -= OpenUI;
         GameEvents.TaskCompleted -= OnTaskCompleted;

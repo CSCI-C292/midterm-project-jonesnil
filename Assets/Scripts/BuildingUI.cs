@@ -156,6 +156,11 @@ public class BuildingUI : MonoBehaviour
                 scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Defend";
                 scavengeButton.SetActive(true);
                 break;
+            case BuildingType.Bar:
+                foodText.text = "Station colonists here to raise happiness.";
+                scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Bartend";
+                scavengeButton.SetActive(true);
+                break;
         }
     }
 
@@ -203,8 +208,10 @@ public class BuildingUI : MonoBehaviour
             {
                 if(building.typeName == BuildingType.Farm)
                     GameEvents.InvokeTaskUIStarted(new Task(TaskType.Farm, building));
-                if (building.typeName == BuildingType.PD)
+                if(building.typeName == BuildingType.PD)
                     GameEvents.InvokeTaskUIStarted(new Task(TaskType.Protect, building));
+                if(building.typeName == BuildingType.Bar)
+                    GameEvents.InvokeTaskUIStarted(new Task(TaskType.Bartend, building));
             }
             else
                 GameEvents.InvokeTaskUIStarted(new Task(TaskType.Scavenge, building));
@@ -245,7 +252,7 @@ public class BuildingUI : MonoBehaviour
     // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
     // connection severed before the game is reloaded. The connections will be remade by the new versions
     // of these classes on boot.
-    void OnGameOver(object sender, EventArgs args) 
+    void OnGameOver(object sender, IntEventArgs args) 
     {
         GameEvents.BuildingClicked -= OnBuildingClicked;
         GameEvents.TaskUIStarted -= OnTaskUIStarted;

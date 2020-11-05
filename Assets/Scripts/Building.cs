@@ -24,10 +24,9 @@ public class Building
     //These function calls create everything about the building. The
     //only thing given to the building on creation is its type, it 
     //does the heavy lifting of making its stats on its own.
-    public Building(int startType, Vector3 startWorldPosition)
+    public Building(BuildingType type, Vector3 startWorldPosition)
     {
-        this.typeNum = startType;
-        this.typeName = this.GetTypeNameByNum(typeNum);
+        this.typeName = type;
         this.food = this.GetFoodByType(typeName);
         this.peopleRandomRoll = this.GetPeopleByType(typeName);
         this.peopleCount = this.GetPeopleAmount();
@@ -37,32 +36,6 @@ public class Building
         this.worldPosition = startWorldPosition;
     }
 
-    //This just grabs the enum based on a randomly rolled number this is
-    //given on creation.
-    private BuildingType GetTypeNameByNum(int typeNumber)
-    {
-        BuildingType output = BuildingType.Hospital;
-
-        switch (typeNumber)
-        {
-            case 0:
-                output = BuildingType.Hospital;
-                break;
-            case 1:
-                output = BuildingType.Apartment;
-                break;
-            case 2:
-                output = BuildingType.Grocery;
-                break;
-            case 3:
-                output = BuildingType.PD;
-                break;
-            case 4:
-                output = BuildingType.Farm;
-                break;
-        }
-        return output;
-    }
 
     //This function just randomly rolls how much food
     //the building will have based on its type. Some
@@ -86,6 +59,9 @@ public class Building
                 break;
             case BuildingType.PD:
                 output = UnityEngine.Random.Range(0, 2);
+                break;
+            case BuildingType.Bar:
+                output = UnityEngine.Random.Range(1, 6);
                 break;
         }
 
@@ -115,6 +91,9 @@ public class Building
                 break;
             case BuildingType.PD:
                 output = UnityEngine.Random.Range(0, 6);
+                break;
+            case BuildingType.Bar:
+                output = UnityEngine.Random.Range(0, 3);
                 break;
         }
 

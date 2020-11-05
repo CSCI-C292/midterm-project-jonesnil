@@ -15,6 +15,7 @@ public class GameOverUI : MonoBehaviour
     Text gameOverText;
     Colonist dead;
     GameObject restartButton;
+    Text dayDisplay;
 
     // This is just a variable GameOverUI keeps track of itself, and changes everytime an alert is called.
     // It tells the class what to do when the button attached to it is clicked.
@@ -26,7 +27,9 @@ public class GameOverUI : MonoBehaviour
         mainPanel = transform.GetComponent<Image>();
         gameOverText = transform.GetChild(0).GetComponent<Text>();
         restartButton = transform.GetChild(1).gameObject;
+        dayDisplay = transform.GetChild(2).GetComponent<Text>();
         dead = null;
+
 
         GameEvents.RoboAttackUIStarted += OnRoboAttackUIStarted;
         GameEvents.AlertStarted += OnAlertStarted;
@@ -38,10 +41,12 @@ public class GameOverUI : MonoBehaviour
     // Does the tedious work of closing the UI box.
     void CloseGameOverUI() 
     {
+        dayDisplay.text = "";
         backgroundPanel.enabled = false;
         mainPanel.enabled = false;
         gameOverText.enabled = false;
         restartButton.SetActive(false);
+        dayDisplay.enabled = false;
     }
 
     // Oh boy, this one opens the UI box.
@@ -51,16 +56,19 @@ public class GameOverUI : MonoBehaviour
         mainPanel.enabled = true;
         gameOverText.enabled = true;
         restartButton.SetActive(true);
+        dayDisplay.enabled = true;
     }
 
     // When you reach game over, this gives the relevant alert text/button text and situates itself to restart
     // the game when you click its button. It also severs the connection between the events and its methods so
     // when you hit restart they won't break the game on reloading the scene.
-    void OnGameOver(object sender, EventArgs args) 
+    void OnGameOver(object sender, IntEventArgs args) 
     {
+        int daysGone = args.intPayload;
         alertType = AlertType.GameOver;
 
         gameOverText.text = "All of your colonists have died, whether by starvation or the robot menace. May the human legacy live on in their beeps.";
+        dayDisplay.text = "You survived: " + daysGone + " days.";
         restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Restart?";
 
         GameEvents.RoboAttackUIStarted -= OnRoboAttackUIStarted;
@@ -82,11 +90,15 @@ public class GameOverUI : MonoBehaviour
         {
             dead = args.colonistPayload;
             gameOverText.text = "ROBOT ATTACK: They rushed us bad last night. We held them off for now, but " + dead.name + " was killed.";
+            dayDisplay.text = "Happiness -10";
+            GameEvents.InvokeHappinessChanged(-10);
             restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Goodbye, " + dead.name;
         }
         else
         {
             gameOverText.text = "ROBOT ATTACK: They attacked last night, but we were ready. Even went out and popped the heads to stop the beeping.";
+            dayDisplay.text = "Happiness +10";
+            GameEvents.InvokeHappinessChanged(10);
             restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Nice.";
         }
 
@@ -98,10 +110,17 @@ public class GameOverUI : MonoBehaviour
     void OnAlertStarted(object sender, AlertEventArgs args)
     {
         alertType = AlertType.Misc;
-
+        int happinessDiff = args.happinessDiff;
         OpenGameOverUI();
 
         gameOverText.text = args.alertString;
+
+        if (happinessDiff <= 0)
+            dayDisplay.text = "Happiness " + happinessDiff;
+        else
+            dayDisplay.text = "Happiness +" + happinessDiff;
+
+        GameEvents.InvokeHappinessChanged(happinessDiff);
         restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = args.buttonString;
     }
 

@@ -44,6 +44,12 @@ public class Task
             case TaskType.Farm:
                 durationTimer = 10;
                 break;
+            case TaskType.Protect:
+                durationTimer = 10;
+                break;
+            case TaskType.Bartend:
+                durationTimer = 10;
+                break;
         }
     }
 
@@ -85,7 +91,7 @@ public class Task
                 if (odds >= roll)
                 {
                     int peopleIndex = 0;
-                    while (peopleIndex < building.peopleCount)
+                    while (peopleIndex < building.peopleCount && StatusUI.canAddColonist)
                     {
                         GameEvents.InvokeAddColonist();
                         peopleIndex += 1;
@@ -139,6 +145,8 @@ public class Task
                 return colonist.scoutingSkill;
             case TaskType.Protect:
                 return colonist.fightingSkill;
+            case TaskType.Bartend:
+                return colonist.leadershipSkill;
         }
 
         return 0f;

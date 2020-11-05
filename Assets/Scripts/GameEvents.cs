@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using JetBrains.Annotations;
 
 // Might have gone a bit overboard with events in this game but believe it or not I actually found them really
 // convenient. I had used them before but didn't really understand them until this class and used this project to 
@@ -37,6 +38,7 @@ public class AlertEventArgs : EventArgs
 {
     public string alertString;
     public string buttonString;
+    public int happinessDiff;
 }
 
 public static class GameEvents
@@ -54,12 +56,13 @@ public static class GameEvents
     public static event EventHandler<IntEventArgs> FoodAdded;
     public static event EventHandler RemoveRandomColonist;
     public static event EventHandler<ColonistEventArgs> RemoveColonist;
-    public static event EventHandler GameOver;
+    public static event EventHandler<IntEventArgs> GameOver;
     public static event EventHandler<BuildingEventArgs> TaskCancelled;
     public static event EventHandler<BooleanEventArgs> RoboAttack;
     public static event EventHandler<ColonistEventArgs> RoboAttackUIStarted;
     public static event EventHandler AlertConcluded;
     public static event EventHandler<AlertEventArgs> AlertStarted;
+    public static event EventHandler<IntEventArgs> HappinessChanged;
 
     public static void InvokeBuildingClicked(Building building)
     {
@@ -121,9 +124,9 @@ public static class GameEvents
         RemoveColonist(null, new ColonistEventArgs { colonistPayload = colonist });
     }
 
-    public static void InvokeGameOver()
+    public static void InvokeGameOver(int daysGone)
     {
-        GameOver(null, EventArgs.Empty);
+        GameOver(null, new IntEventArgs { intPayload = daysGone});
     }
 
     public static void InvokeTaskCancelled(Building building) 
@@ -146,8 +149,13 @@ public static class GameEvents
         AlertConcluded(null, EventArgs.Empty);
     }
 
-    public static void InvokeAlertStarted(String alert, String button)
+    public static void InvokeAlertStarted(String alert, String button, int happinessDifference)
     {
-        AlertStarted(null, new AlertEventArgs {alertString = alert, buttonString = button });
+        AlertStarted(null, new AlertEventArgs {alertString = alert, buttonString = button, happinessDiff = happinessDifference });
+    }
+
+    public static void InvokeHappinessChanged(int happiness)
+    {
+        HappinessChanged(null, new IntEventArgs { intPayload = happiness });
     }
 }

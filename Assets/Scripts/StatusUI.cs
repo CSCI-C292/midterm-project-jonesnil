@@ -15,6 +15,7 @@ public class StatusUI : MonoBehaviour
     Text foodDisplay;
     Text peopleDisplay;
     Text defenseDisplay;
+    Text happinessDisplay;
 
     int currentFood;
     int currentColonists;
@@ -22,6 +23,9 @@ public class StatusUI : MonoBehaviour
     int farming;
     int defense;
     int buildingsReclaimed;
+    int daysPassed;
+    int currentHappiness;
+    int bartending;
 
     // I admit this is bad game programming practice but I was having some trouble avoiding it. This static
     // variable lets the task class know if a colonist can be added based on the colonists present and the 
@@ -42,6 +46,7 @@ public class StatusUI : MonoBehaviour
         this.foodDisplay = transform.GetChild(1).GetComponent<Text>();
         this.peopleDisplay = transform.GetChild(2).GetComponent<Text>();
         this.defenseDisplay = transform.GetChild(3).GetComponent<Text>();
+        this.happinessDisplay = transform.GetChild(4).GetComponent<Text>();
 
         GameEvents.BuildingClicked += OnBuildingClicked;
         GameEvents.BuildingUIClosing += OnBuildingUIClosing;
@@ -66,17 +71,21 @@ public class StatusUI : MonoBehaviour
         GameEvents.RoboAttackUIStarted += OnRoboAttackUIStarted;
         GameEvents.AlertConcluded += OnAlertConcluded;
         GameEvents.AlertStarted += OnAlertStarted;
+        GameEvents.HappinessChanged += OnHappinessChanged;
         GameEvents.GameOver += OnGameOver;
 
         this.currentFood = 20;
+        this.currentHappiness = 100;
         this.currentColonists = 0;
 
         canAddColonist = true;
 
         this.defense = 0;
         this.farming = 0;
+        this.bartending = 0;
 
         this.buildingsReclaimed = 0;
+        this.daysPassed = 0;
 
         this.UpdateDisplay();
     }
@@ -122,9 +131,16 @@ public class StatusUI : MonoBehaviour
     // state-wise.
     void UpdateDisplay() 
     {
-        this.foodDisplay.text = "Food: " + this.currentFood.ToString() + "/" + (this.farming - this.currentColonists).ToString();
+        // This bit puts a + in front of the farming number to indicate you're gaining food,
+        // but it doesn't put a sign otherwise because negative numbers come with their sign.
+        if((this.farming - this.currentColonists) <= 0)
+            this.foodDisplay.text = "Food: " + this.currentFood.ToString() + "/" + (this.farming - this.currentColonists).ToString();
+        else
+            this.foodDisplay.text = "Food: " + this.currentFood.ToString() + "/+" + (this.farming - this.currentColonists).ToString();
+
         this.peopleDisplay.text = "Colonists: " + this.currentColonists.ToString() + "/" + this.maxColonists.ToString();
         this.defenseDisplay.text = "Defense: " + this.defense.ToString();
+        this.happinessDisplay.text = "Happiness: " + this.currentHappiness.ToString() + "/" + (this.bartending - this.currentColonists).ToString();
     }
 
     // Don't click a building and then advance the day, that's weird.
@@ -156,6 +172,8 @@ public class StatusUI : MonoBehaviour
     // on some variables.
     public void AdvanceDay() 
     {
+        this.daysPassed += 1;
+
         // It does try to avoid irritating null reference exceptions if the event isn't assigned.
         try
         {
@@ -165,6 +183,7 @@ public class StatusUI : MonoBehaviour
 
         // Remove food based on colonists
         currentFood += (this.farming - this.currentColonists);
+        currentHappiness += (this.bartending - this.currentColonists);
 
         // You can start an alert that kills a random colonist in a generic way using this event. 
         // It just takes a string to put on the alert itself and one to put on the button to close it.
@@ -172,7 +191,12 @@ public class StatusUI : MonoBehaviour
         // warn them.
         if (currentFood < 0)
         {
-            GameEvents.InvokeAlertStarted("One of your colonists died of hunger! Set someone to farm or scavenge to make food.","Noted.");
+            GameEvents.InvokeAlertStarted("One of your colonists died of hunger! Set someone to farm or scavenge to make food.","Noted.", -10);
+        }
+
+        if (currentHappiness < 0)
+        {
+            GameEvents.InvokeAlertStarted("One of your colonists' despair has led them to abandon the colony. Consider assigning bartenders. You gave a speech to raise morale for now but it won't last.", "Noted.", 5);
         }
 
         // This rolls for a robot attack (10% odds) and then if the defense (set by assigning colonists to protect)
@@ -220,6 +244,9 @@ public class StatusUI : MonoBehaviour
         if (startedTask.type == TaskType.Protect)
             defense += startedTask.colonist.fightingSkill;
 
+        if (startedTask.type == TaskType.Bartend)
+            defense += startedTask.colonist.leadershipSkill;
+
         taskHolder.Add(startedTask);
         UpdateDisplay();
     }
@@ -243,6 +270,9 @@ public class StatusUI : MonoBehaviour
         if (finishedTask.type == TaskType.Protect)
             defense -= finishedTask.colonist.fightingSkill;
 
+        if (finishedTask.type == TaskType.Bartend)
+            defense -= finishedTask.colonist.leadershipSkill;
+
         taskHolder.Remove(finishedTask);
         UpdateDisplay();
     }
@@ -263,7 +293,7 @@ public class StatusUI : MonoBehaviour
             canAddColonist = true;
 
         if (this.currentColonists <= 0)
-            GameEvents.InvokeGameOver();
+            GameEvents.InvokeGameOver(this.daysPassed);
 
         Colonist colonistToRemove = args.colonistPayload;
         int counter = 0;
@@ -334,13 +364,22 @@ public class StatusUI : MonoBehaviour
         advanceDayButton.interactable = true;
     }
 
+    // If some other class wants to change happiness they can call InvokeHappinessChanged with an int
+    // and this will add it to the happiness of the town.
+    private void OnHappinessChanged(object sender, IntEventArgs happinessDiff) 
+    {
+        int diff = happinessDiff.intPayload;
+        currentHappiness += diff;
+        UpdateDisplay();
+    }
+
     // When the game ends I want to be able to reload the active scene to restart. However, you might 
     // notice that the GameEvents I make are static. Static things don't get destroyed on reload, and 
     // Unity seems to throw a huge fit when an event tries to call a function that doesn't exist (because
     // the thing it was tied to is destroyed.) Thus, every function connected to GameEvents must have the 
     // connection severed before the game is reloaded. The connections will be remade by the new versions
     // of these classes on boot.
-    void OnGameOver(object sender, EventArgs args) 
+    void OnGameOver(object sender, IntEventArgs args) 
     {
         advanceDayButton.interactable = false;
 
@@ -356,6 +395,7 @@ public class StatusUI : MonoBehaviour
         GameEvents.RoboAttackUIStarted -= OnRoboAttackUIStarted;
         GameEvents.AlertConcluded -= OnAlertConcluded;
         GameEvents.AlertStarted -= OnAlertStarted;
+        GameEvents.HappinessChanged -= OnHappinessChanged;
         GameEvents.GameOver -= OnGameOver;
     }
 
