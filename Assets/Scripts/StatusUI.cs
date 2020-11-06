@@ -38,7 +38,8 @@ public class StatusUI : MonoBehaviour
     [SerializeField] GameObject iconPrefab;
 
     Dictionary<Vector3, GameObject> iconFinder;
-        
+    Dictionary<GameObject, Task> iconToTask;
+    
     List<Task> taskHolder;
 
     private void Awake()
@@ -53,6 +54,7 @@ public class StatusUI : MonoBehaviour
         GameEvents.BuildingUIClosing += OnBuildingUIClosing;
 
         this.iconFinder = new Dictionary<Vector3, GameObject>();
+        this.iconToTask = new Dictionary<GameObject, Task>();
 
         this.taskHolder = new List<Task>();
 
@@ -89,6 +91,9 @@ public class StatusUI : MonoBehaviour
         this.daysPassed = 0;
 
         this.totalBuildings = 55;
+
+        // This starts false for the intro message.
+        advanceDayButton.interactable = false;
 
         this.UpdateDisplay();
     }
@@ -143,7 +148,12 @@ public class StatusUI : MonoBehaviour
 
         this.peopleDisplay.text = "Colonists: " + this.currentColonists.ToString() + "/" + this.maxColonists.ToString();
         this.defenseDisplay.text = "Defense: " + this.defense.ToString();
-        this.happinessDisplay.text = "Happiness: " + this.currentHappiness.ToString() + "/" + (this.bartending - this.currentColonists).ToString();
+        
+        if((this.bartending - this.currentColonists) <= 0)
+            this.happinessDisplay.text = "Happiness: " + this.currentHappiness.ToString() + "/" + (this.bartending - this.currentColonists).ToString();
+        else
+            this.happinessDisplay.text = "Happiness: " + this.currentHappiness.ToString() + "/+" + (this.bartending - this.currentColonists).ToString();
+
     }
 
     // Don't click a building and then advance the day, that's weird.
@@ -227,6 +237,9 @@ public class StatusUI : MonoBehaviour
 
         // As always, if you change the state update the state display.
         UpdateDisplay();
+
+        //Also update our task icons for the player's convenience.
+        UpdateIcons();
     }
 
     // This is probably an irritating function to read but it listens to the taskStarted event
@@ -243,8 +256,18 @@ public class StatusUI : MonoBehaviour
         Vector3 iconPos = Camera.main.WorldToScreenPoint(buildingPos);
         Vector3 iconRotation = new Vector3(0, 0, 45);
         GameObject newIcon = Instantiate(iconPrefab, iconPos, Quaternion.Euler(iconRotation), this.transform);
-        iconFinder.Add(startedTask.building.worldPosition, newIcon);
+        
+        Text iconNumber = newIcon.transform.GetChild(1).GetComponent<Text>();
 
+        // Ten is the number I use internally to say a timer is infinite, and I don't
+        // want to give that bad info to the player.
+        if (startedTask.durationTimer < 10)
+            iconNumber.text = startedTask.durationTimer.ToString();
+        else
+            iconNumber.text = "";
+
+        iconFinder.Add(startedTask.building.worldPosition, newIcon);
+        iconToTask.Add(newIcon, startedTask);
 
         if (startedTask.type == TaskType.Farm)
             farming += startedTask.colonist.scoutingSkill;
@@ -259,6 +282,24 @@ public class StatusUI : MonoBehaviour
         UpdateDisplay();
     }
 
+    //This function keeps each task icon updated to its tasks duration.
+    void UpdateIcons() 
+    {
+        foreach (GameObject icon in iconFinder.Values) 
+        {
+            Text iconNumber = icon.transform.GetChild(1).GetComponent<Text>();
+            Task relevantTask = iconToTask[icon];
+
+            // Ten is the number I use internally to say a timer is infinite, and I don't
+            // want to give that bad info to the player.
+            if (relevantTask.durationTimer < 10)
+                iconNumber.text = relevantTask.durationTimer.ToString();
+            else
+                iconNumber.text = "";
+        }
+    
+    }
+
     // When the taskCompleted event is called this function gets rid of the icon it placed after finding
     // the task in its Icon-task dictionary. It also takes from your farming/defense task based on the skill
     // of the person you removed.
@@ -270,6 +311,7 @@ public class StatusUI : MonoBehaviour
 
         GameObject oldIcon = iconFinder[finishedTask.building.worldPosition];
         iconFinder.Remove(finishedTask.building.worldPosition);
+        iconToTask.Remove(oldIcon);
         Destroy(oldIcon);
 
         if (finishedTask.type == TaskType.Farm)

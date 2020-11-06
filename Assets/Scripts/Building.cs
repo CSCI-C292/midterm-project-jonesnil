@@ -63,6 +63,9 @@ public class Building
             case BuildingType.Bar:
                 output = UnityEngine.Random.Range(1, 6);
                 break;
+            case BuildingType.School:
+                output = UnityEngine.Random.Range(0, 3);
+                break;
         }
 
         return output;
@@ -94,6 +97,9 @@ public class Building
                 break;
             case BuildingType.Bar:
                 output = UnityEngine.Random.Range(0, 3);
+                break;
+            case BuildingType.School:
+                output = UnityEngine.Random.Range(0, 6);
                 break;
         }
 

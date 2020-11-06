@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -146,6 +147,16 @@ public class ColonistManager : MonoBehaviour
 
         //This sets the text at the top to remind the player what kind of task they chose.
         typeText.text = currentTask.type.ToString();
+
+        if (currentTask.type == TaskType.SchoolLeadership)
+            typeText.text = "Leadership +1";
+        if (currentTask.type == TaskType.SchoolBuilding)
+            typeText.text = "Building +1";
+        if (currentTask.type == TaskType.SchoolDefense)
+            typeText.text = "Killing +1";
+        if (currentTask.type == TaskType.SchoolScouting)
+            typeText.text = "Scouting +1";
+        
 
         DisplayUISlide();
     }

@@ -35,7 +35,12 @@ public class GameOverUI : MonoBehaviour
         GameEvents.AlertStarted += OnAlertStarted;
         GameEvents.GameOver += OnGameOver;
 
-        CloseGameOverUI();
+        OpenGameOverUI();
+        alertType = AlertType.Start;
+        gameOverText.text = "You are the leader of a small resistance group against the robot menace. Feed protect and placate your colonists as you expand outwards. If you can reclaim every building in the city you will have saved your people.";
+        dayDisplay.text = "";
+        restartButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Godspeed, General";
+
     }
 
     // Does the tedious work of closing the UI box.
@@ -157,6 +162,11 @@ public class GameOverUI : MonoBehaviour
                     GameEvents.InvokeRemoveColonist(dead);
                     dead = null;
                 }
+                break;
+
+            case AlertType.Start:
+                CloseGameOverUI();
+                GameEvents.InvokeAlertConcluded();
                 break;
 
             // If this is a miscellaneous colonist killing alert just kill the colonist at random,

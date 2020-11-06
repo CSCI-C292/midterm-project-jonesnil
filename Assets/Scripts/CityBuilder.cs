@@ -33,7 +33,8 @@ public class CityBuilder : MonoBehaviour
         RandomizeBuildings();
         ReclaimStarterBuildings();
 
-        inMenu = false;
+        // This starts true to prevent you from clicking stuff during the intro.
+        inMenu = true;
 
     }
 
@@ -157,16 +158,18 @@ public class CityBuilder : MonoBehaviour
     {
         float buildingRoll = UnityEngine.Random.Range(0.0f, 1.0f);
 
-        if(buildingRoll <= .25)
+        if(buildingRoll <= .22)
             return BuildingType.Farm;
-        if(buildingRoll <= .5)
+        if(buildingRoll <= .44)
             return BuildingType.PD;
-        if(buildingRoll <= .75)
+        if(buildingRoll <= .7)
             return BuildingType.Apartment;
-        if(buildingRoll <= .85)
+        if(buildingRoll <= .8)
             return BuildingType.Bar;
-        if (buildingRoll <= .95)
+        if (buildingRoll <= .9)
             return BuildingType.Grocery;
+        if (buildingRoll <= .95)
+            return BuildingType.School;
         return BuildingType.Hospital;
 
     }
@@ -188,6 +191,8 @@ public class CityBuilder : MonoBehaviour
                 return 3;
             case BuildingType.Bar:
                 return 5;
+            case BuildingType.School:
+                return 6;
         }
 
         // This should never happen it just shuts up visual studio by returning something.

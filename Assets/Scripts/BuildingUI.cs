@@ -17,6 +17,10 @@ public class BuildingUI : MonoBehaviour
     Building building;
     GameObject recruitButton;
     GameObject scavengeButton;
+    GameObject trainLeadButton;
+    GameObject trainBuildButton;
+    GameObject trainKillButton;
+    GameObject trainScoutButton;
 
     // Start is called before the first frame update
     void Start()
@@ -37,8 +41,12 @@ public class BuildingUI : MonoBehaviour
         reclaimButton = transform.GetChild(5).gameObject;
         recruitButton = transform.GetChild(6).gameObject;
         scavengeButton = transform.GetChild(7).gameObject;
+        trainLeadButton = transform.GetChild(8).gameObject;
+        trainBuildButton = transform.GetChild(9).gameObject;
+        trainKillButton = transform.GetChild(10).gameObject;
+        trainScoutButton = transform.GetChild(11).gameObject;
 
-        this.CloseBuildingUI();
+        this.SoftCloseBuildingUI();
     }
 
     //This function sets up the UI after the player clicks on a building.
@@ -62,6 +70,26 @@ public class BuildingUI : MonoBehaviour
 
     }
 
+    // This is used to close the building UI without telling anyone (invoking the event). 
+    // It's only really called at the beginning of the game to prevent weird event side
+    // effects.
+    void SoftCloseBuildingUI() 
+    {
+        uiBox.enabled = false;
+        typeText.enabled = false;
+        foodText.enabled = false;
+        exitButton.SetActive(false);
+        peopleText.enabled = false;
+        robotText.enabled = false;
+        reclaimButton.SetActive(false);
+        recruitButton.SetActive(false);
+        scavengeButton.SetActive(false);
+        trainLeadButton.SetActive(false);
+        trainBuildButton.SetActive(false);
+        trainKillButton.SetActive(false);
+        trainScoutButton.SetActive(false);
+    }
+
     //This function disables all the UI components when the player clicks the X button on it.
     //It also activates the closing UI event to let the game know things should be clickable again
     //on the overworld.
@@ -76,6 +104,10 @@ public class BuildingUI : MonoBehaviour
         reclaimButton.SetActive(false);
         recruitButton.SetActive(false);
         scavengeButton.SetActive(false);
+        trainLeadButton.SetActive(false);
+        trainBuildButton.SetActive(false);
+        trainKillButton.SetActive(false);
+        trainScoutButton.SetActive(false);
 
         GameEvents.InvokeBuildingUIOver();
     }
@@ -161,6 +193,13 @@ public class BuildingUI : MonoBehaviour
                 scavengeButton.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Bartend";
                 scavengeButton.SetActive(true);
                 break;
+            case BuildingType.School:
+                foodText.text = "Train colonist skills here.";
+                trainLeadButton.SetActive(true);
+                trainBuildButton.SetActive(true);
+                trainKillButton.SetActive(true);
+                trainScoutButton.SetActive(true);
+                break;
         }
     }
 
@@ -218,6 +257,26 @@ public class BuildingUI : MonoBehaviour
         }
     }
 
+    public void TrainLeadership() 
+    {
+        GameEvents.InvokeTaskUIStarted(new Task(TaskType.SchoolLeadership, building));
+    }
+
+    public void TrainBuilding()
+    {
+        GameEvents.InvokeTaskUIStarted(new Task(TaskType.SchoolBuilding, building));
+    }
+
+    public void TrainKilling()
+    {
+        GameEvents.InvokeTaskUIStarted(new Task(TaskType.SchoolDefense, building));
+    }
+
+    public void TrainScouting()
+    {
+        GameEvents.InvokeTaskUIStarted(new Task(TaskType.SchoolScouting, building));
+    }
+
     // So if colonistManagers taskUI is started we don't want to steal its thunder. This shuts down all
     // the buildingUI buttons so the player doesn't click them and make weird stuff happen.
     void OnTaskUIStarted(object sender, TaskEventArgs args) 
@@ -226,6 +285,10 @@ public class BuildingUI : MonoBehaviour
         recruitButton.GetComponent<Button>().interactable = false;
         reclaimButton.GetComponent<Button>().interactable = false;
         scavengeButton.GetComponent<Button>().interactable = false;
+        trainLeadButton.GetComponent<Button>().interactable = false;
+        trainBuildButton.GetComponent<Button>().interactable = false;
+        trainKillButton.GetComponent<Button>().interactable = false;
+        trainScoutButton.GetComponent<Button>().interactable = false;
     }
 
     // For you indecisive beepboopers, if you cancel the colonist/task menu
@@ -237,6 +300,10 @@ public class BuildingUI : MonoBehaviour
         recruitButton.GetComponent<Button>().interactable = true;
         reclaimButton.GetComponent<Button>().interactable = true;
         scavengeButton.GetComponent<Button>().interactable = true;
+        trainLeadButton.GetComponent<Button>().interactable = true;
+        trainBuildButton.GetComponent<Button>().interactable = true;
+        trainKillButton.GetComponent<Button>().interactable = true;
+        trainScoutButton.GetComponent<Button>().interactable = true;
     }
     // However, if you pick a task in the colonist manager screen, this
     // shuts down the whole building UI. You can't place two tasks in a building

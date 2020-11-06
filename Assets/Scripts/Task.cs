@@ -41,6 +41,18 @@ public class Task
             case TaskType.Scavenge:
                 durationTimer = 2;
                 break;
+            case TaskType.SchoolLeadership:
+                durationTimer = 4;
+                break;
+            case TaskType.SchoolBuilding:
+                durationTimer = 4;
+                break;
+            case TaskType.SchoolScouting:
+                durationTimer = 4;
+                break;
+            case TaskType.SchoolDefense:
+                durationTimer = 4;
+                break;
             case TaskType.Farm:
                 durationTimer = 10;
                 break;
@@ -118,6 +130,18 @@ public class Task
                     GameEvents.InvokeFoodAdded(scavenged);
                 }
                 break;
+            case TaskType.SchoolLeadership:
+                colonist.leadershipSkill += 1;
+                break;
+            case TaskType.SchoolBuilding:
+                colonist.buildingSkill += 1;
+                break;
+            case TaskType.SchoolDefense:
+                colonist.fightingSkill += 1;
+                break;
+            case TaskType.SchoolScouting:
+                colonist.scoutingSkill += 1;
+                break;
         }
 
         GameEvents.InvokeTaskCompleted(this);
@@ -147,6 +171,14 @@ public class Task
                 return colonist.fightingSkill;
             case TaskType.Bartend:
                 return colonist.leadershipSkill;
+            case TaskType.SchoolScouting:
+                return colonist.scoutingSkill + 1;
+            case TaskType.SchoolLeadership:
+                return colonist.leadershipSkill + 1;
+            case TaskType.SchoolBuilding:
+                return colonist.buildingSkill + 1;
+            case TaskType.SchoolDefense:
+                return colonist.fightingSkill + 1;
         }
 
         return 0f;
