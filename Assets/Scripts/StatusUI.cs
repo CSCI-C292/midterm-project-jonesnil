@@ -90,7 +90,7 @@ public class StatusUI : MonoBehaviour
         this.buildingsReclaimed = 0;
         this.daysPassed = 0;
 
-        this.totalBuildings = 55;
+        this.totalBuildings = 56;
 
         // This starts false for the intro message.
         advanceDayButton.interactable = false;
@@ -263,8 +263,17 @@ public class StatusUI : MonoBehaviour
         // want to give that bad info to the player.
         if (startedTask.durationTimer < 10)
             iconNumber.text = startedTask.durationTimer.ToString();
-        else
-            iconNumber.text = "";
+        else 
+        {
+            if (startedTask.type == TaskType.Farm)
+                iconNumber.text =  "+" + startedTask.colonist.scoutingSkill;
+
+            if (startedTask.type == TaskType.Protect)
+                iconNumber.text = "+" + startedTask.colonist.fightingSkill;
+
+            if (startedTask.type == TaskType.Bartend)
+                iconNumber.text = "+" + startedTask.colonist.leadershipSkill;
+        }
 
         iconFinder.Add(startedTask.building.worldPosition, newIcon);
         iconToTask.Add(newIcon, startedTask);
@@ -294,8 +303,6 @@ public class StatusUI : MonoBehaviour
             // want to give that bad info to the player.
             if (relevantTask.durationTimer < 10)
                 iconNumber.text = relevantTask.durationTimer.ToString();
-            else
-                iconNumber.text = "";
         }
     
     }
