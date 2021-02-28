@@ -9,7 +9,9 @@ public class CityBuilder : MonoBehaviour
 {
 
     Tilemap cityTiles;
+    [SerializeField] Tilemap roofTiles;
     [SerializeField] Tile[] buildings;
+    [SerializeField] Tile[] roofs;
     Dictionary<Vector3Int, Building> buildingCatalog;
     Dictionary<Building, Vector3Int> tileCatalog;
     Boolean inMenu;
@@ -74,7 +76,6 @@ public class CityBuilder : MonoBehaviour
                 //(except a few)
                 cityTiles.SetTileFlags(tilePos, TileFlags.None);
                 cityTiles.SetColor(tilePos, Color.grey);
-
                 //This makes the building with a random type and adds nearby tiles to the 
                 //buildingCatalog so they can be recognized later when they're clicked.
                 //
@@ -82,7 +83,43 @@ public class CityBuilder : MonoBehaviour
                 //building and get its location instead. In that case I don't include the 
                 //adjacent locations because I want the precise location.
                 BuildingType type = GetRandomBuilding();
-                cityTiles.SetTile(tilePos, buildings[GetBuildingIndex(type)]);
+                int buildingPick = GetBuildingIndex(type);
+                cityTiles.SetTile(tilePos, buildings[buildingPick]);
+
+                if (buildingPick != 4)
+                {
+                    int roofPick = 3;
+
+                    switch (buildingPick) 
+                    {
+                        case 0:
+                            roofPick = 1;
+                            break;
+                        case 1:
+                            roofPick = 0;
+                            break;
+                        case 2:
+                            roofPick = 3;
+                            break;
+                        case 3:
+                            roofPick = 4;
+                            break;
+                        case 5:
+                            roofPick = 3;
+                            break;
+                        case 6:
+                            roofPick = 5;
+                            break;
+                    }
+                    Vector3Int roofPos = new Vector3Int(tilePos.x - 1, tilePos.y, tilePos.z);
+                    Tile roof = roofs[roofPick];
+
+                    roofTiles.SetTile(roofPos, roof);
+
+                    roofTiles.SetTileFlags(roofPos, TileFlags.None);
+                    roofTiles.SetColor(roofPos, Color.grey);
+                }
+
                 Building currentBuilding = new Building(type, cityTiles.CellToWorld(tilePos));
                 buildingCatalog.Add(tilePos, currentBuilding);
                 buildingCatalog.Add(tilePosUpLeft, currentBuilding);
@@ -229,7 +266,13 @@ public class CityBuilder : MonoBehaviour
     //it can tell other stuff that needs to know later.
     private void setBuildingReclaimed(Building building) 
     {
-        cityTiles.SetColor(tileCatalog[building], Color.white);
+        Vector3Int buildingPos = tileCatalog[building];
+        cityTiles.SetColor(buildingPos, Color.white);
+
+        Vector3Int roofPos = new Vector3Int(buildingPos.x - 1, buildingPos.y, buildingPos.z);
+        roofTiles.SetTileFlags(roofPos, TileFlags.None);
+        roofTiles.SetColor(roofPos, Color.white);
+
         building.reclaimed = true;
     }
 
