@@ -56,23 +56,22 @@ public class ColonistManager : MonoBehaviour
 
         colonistChoiceOneButton = transform.GetChild(2).gameObject;
         colonistNameOne = colonistChoiceOneButton.transform.GetChild(0).GetComponent<Text>();
+        colonistStatsOne = transform.GetChild(2).GetChild(1).GetComponent<Text>();
 
         colonistChoiceTwoButton = transform.GetChild(3).gameObject;
         colonistNameTwo = colonistChoiceTwoButton.transform.GetChild(0).GetComponent<Text>();
+        colonistStatsTwo = transform.GetChild(3).GetChild(1).GetComponent<Text>();
 
         colonistChoiceThreeButton = transform.GetChild(4).gameObject;
         colonistNameThree = colonistChoiceThreeButton.transform.GetChild(0).GetComponent<Text>();
+        colonistStatsThree = transform.GetChild(4).GetChild(1).GetComponent<Text>();
 
         nextColonistsButton = transform.GetChild(5).gameObject;
         previousColonistsButton = transform.GetChild(6).gameObject;
 
-        colonistStatsOne = transform.GetChild(7).GetComponent<Text>();
-        colonistStatsTwo = transform.GetChild(8).GetComponent<Text>();
-        colonistStatsThree = transform.GetChild(9).GetComponent<Text>();
-
-        confirmTaskSelectionButton = transform.GetChild(10).gameObject;
-        cancelTaskSelectionButton = transform.GetChild(11).gameObject;
-        taskOdds = transform.GetChild(12).GetComponent<Text>();
+        confirmTaskSelectionButton = transform.GetChild(7).gameObject;
+        cancelTaskSelectionButton = transform.GetChild(8).gameObject;
+        taskOdds = transform.GetChild(9).GetComponent<Text>();
 
         GameEvents.TaskCompleted += OnTaskCompleted;
         GameEvents.AddColonist += OnAddColonist;

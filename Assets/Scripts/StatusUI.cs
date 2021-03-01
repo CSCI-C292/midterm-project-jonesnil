@@ -16,6 +16,7 @@ public class StatusUI : MonoBehaviour
     Text peopleDisplay;
     Text defenseDisplay;
     Text happinessDisplay;
+    Button toggleMusicButton;
 
     int currentFood;
     int currentColonists;
@@ -34,6 +35,7 @@ public class StatusUI : MonoBehaviour
     // Admittedly I could've used scriptable objects to keep a state and do it that way but it just seemed like
     // a weird thing to make so close to finishing the game.
     public static Boolean canAddColonist;
+    bool music;
 
     [SerializeField] GameObject iconPrefab;
 
@@ -49,6 +51,7 @@ public class StatusUI : MonoBehaviour
         this.peopleDisplay = transform.GetChild(2).GetComponent<Text>();
         this.defenseDisplay = transform.GetChild(3).GetComponent<Text>();
         this.happinessDisplay = transform.GetChild(4).GetComponent<Text>();
+        this.toggleMusicButton = transform.GetChild(5).GetComponent<Button>();
 
         GameEvents.BuildingClicked += OnBuildingClicked;
         GameEvents.BuildingUIClosing += OnBuildingUIClosing;
@@ -91,6 +94,8 @@ public class StatusUI : MonoBehaviour
         this.daysPassed = 0;
 
         this.totalBuildings = 56;
+
+        this.music = true;
 
         // This starts false for the intro message.
         advanceDayButton.interactable = false;
@@ -176,6 +181,11 @@ public class StatusUI : MonoBehaviour
     void OnAlertStarted(object sender, AlertEventArgs args)
     {
         advanceDayButton.interactable = false;
+    }
+
+    public void ToggleMusic() 
+    {
+        GameEvents.InvokeMusicToggle();
     }
 
     // This is called when the advance day button is clicked. It does a lot so I'll go over

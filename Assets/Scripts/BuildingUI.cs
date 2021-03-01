@@ -38,13 +38,16 @@ public class BuildingUI : MonoBehaviour
         exitButton = transform.GetChild(2).gameObject;
         peopleText = transform.GetChild(3).GetComponent<Text>();
         robotText = transform.GetChild(4).GetComponent<Text>();
-        reclaimButton = transform.GetChild(5).gameObject;
-        recruitButton = transform.GetChild(6).gameObject;
-        scavengeButton = transform.GetChild(7).gameObject;
-        trainLeadButton = transform.GetChild(8).gameObject;
-        trainBuildButton = transform.GetChild(9).gameObject;
-        trainKillButton = transform.GetChild(10).gameObject;
-        trainScoutButton = transform.GetChild(11).gameObject;
+
+
+        scavengeButton = transform.GetChild(1).GetChild(0).gameObject;
+        recruitButton = transform.GetChild(3).GetChild(0).gameObject;
+        reclaimButton = transform.GetChild(4).GetChild(0).gameObject;
+
+        trainLeadButton = transform.GetChild(5).gameObject;
+        trainBuildButton = transform.GetChild(6).gameObject;
+        trainKillButton = transform.GetChild(7).gameObject;
+        trainScoutButton = transform.GetChild(8).gameObject;
 
         this.SoftCloseBuildingUI();
     }

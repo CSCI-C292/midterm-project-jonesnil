@@ -116,7 +116,7 @@ public class Building
     //is in the building based on the food variable.
     public string GetFoodAmountString()
     {
-        if (this.food == 0) return "Gone, reduced to atoms";
+        if (this.food == 0) return "Reduced to atoms";
         if(this.food < 3 && this.food > 0) return "Scraps";
         if (this.food >= 3 && this.food < 7) return "A few meals";
         if (this.food >= 7) return "Stockpile";

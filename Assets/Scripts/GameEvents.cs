@@ -69,6 +69,7 @@ public static class GameEvents
     public static event EventHandler AlertConcluded;
     public static event EventHandler<AlertEventArgs> AlertStarted;
     public static event EventHandler<IntEventArgs> HappinessChanged;
+    public static event EventHandler MusicToggle;
 
     public static void InvokeBuildingClicked(Building building)
     {
@@ -163,5 +164,11 @@ public static class GameEvents
     public static void InvokeHappinessChanged(int happiness)
     {
         HappinessChanged(null, new IntEventArgs { intPayload = happiness });
+    }
+
+
+    public static void InvokeMusicToggle()
+    {
+        MusicToggle(null, EventArgs.Empty);
     }
 }
